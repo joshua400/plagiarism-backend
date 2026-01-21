@@ -10,18 +10,16 @@ CORS(app)
 def home():
     return jsonify({"status": "Render backend running"})
 
-@app.route("/check", methods=["POST"])
+@app.route("/check-plagiarism", methods=["POST"])
 def check_plagiarism():
-    data = request.get_json()
+    text1 = request.form.get("document1", "")
+    text2 = request.form.get("document2", "")
 
-    text1 = preprocess_text(data.get("text1", ""))
-    text2 = preprocess_text(data.get("text2", ""))
+    text1 = preprocess_text(text1)
+    text2 = preprocess_text(text2)
 
     if not text1 or not text2:
-        return jsonify({"error": "Both texts are required"}), 400
-
-    if len(text1) > 5000 or len(text2) > 5000:
-        return jsonify({"error": "Text too long"}), 400
+        return jsonify({"error": "Both documents are required"}), 400
 
     score = calculate_similarity(text1, text2)
 
