@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from routes.plagiarism import router
 from fastapi.middleware.cors import CORSMiddleware
+from routes.plagiarism import router
 
 app = FastAPI(title="Plagiarism Checker API v3")
 
