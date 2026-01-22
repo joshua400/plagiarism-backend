@@ -1,4 +1,14 @@
+import re
+
+def split_sentences(text):
+    """Split text into sentences for analysis."""
+    # Split on common sentence endings
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    # Filter out empty sentences
+    return [s.strip() for s in sentences if s.strip() and len(s.split()) >= 3]
+
 def chunk_text(text, size=25, overlap=10):
+    """Chunk text into overlapping segments for search queries."""
     words = text.split()
     chunks = []
     for i in range(0, len(words), size - overlap):

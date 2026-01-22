@@ -1,18 +1,17 @@
-import os
-import requests
-
-OPENSERP_URL = os.getenv("OPENSERP_URL")
+from ddgs import DDGS
 
 def search_web(query):
-    if not OPENSERP_URL:
-        return []
-
+    """Search the web using DuckDuckGo (free, no API key needed)."""
     try:
-        r = requests.get(
-            OPENSERP_URL,
-            params={"q": query, "engine": "duckduckgo"},
-            timeout=8
-        )
-        return r.json().get("results", [])[:3]
-    except:
+        results = list(DDGS().text(query, max_results=5))
+        return [
+            {
+                "title": r.get("title", ""),
+                "link": r.get("href", ""),
+                "snippet": r.get("body", "")
+            }
+            for r in results
+        ]
+    except Exception as e:
+        print(f"Search error: {e}")
         return []
