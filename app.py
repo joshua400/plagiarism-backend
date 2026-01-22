@@ -14,6 +14,14 @@ app.add_middleware(
 
 app.include_router(router)
 
+@app.get("/")
+def home():
+    return {
+        "message": "Welcome to Plagiarism Checker API v3",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
 @app.get("/health")
 def health():
     return {"status": "running"}
