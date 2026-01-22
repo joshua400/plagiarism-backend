@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List, Dict
+from concurrent.futures import ThreadPoolExecutor
 from services.chunker import split_sentences, chunk_text
 from services.search import search_web
 from services.extractor import extract_text
@@ -11,6 +12,13 @@ router = APIRouter()
 
 class TextInput(BaseModel):
     text: str
+
+def process_url(url, title, snippet):
+    """Worker function for parallel extraction."""
+    page_text = extract_text(url)
+    if not page_text:
+        page_text = snippet
+    return {"url": url, "title": title, "content": page_text}
 
 @router.post("/check-plagiarism")
 def check_plagiarism(data: TextInput):
@@ -35,42 +43,61 @@ def check_plagiarism(data: TextInput):
     # Split into sentences for highlighting
     sentences = split_sentences(text)
     
-    # Create search chunks (larger chunks for better search results)
+    # Create search chunks
     chunks = chunk_text(text)
     
-    # Track sources and matches
-    sources = []
-    source_map = {}  # url -> source index
-    sentence_matches = {}  # sentence -> (match_type, source_index, score)
-    
-    # Search for each chunk
-    for chunk in chunks[:12]:  # Increased from 8 to catch more sources
+    # Step 1: Collect unique URLs from search results
+    unique_urls = {} # url -> {title, snippet}
+    for chunk in chunks[:8]: # Limit chunks to speed up search
         results = search_web(chunk)
-        
         for result in results:
             url = result.get("link", "")
-            title = result.get("title", "Untitled")
-            snippet = result.get("snippet", "")
+            if url and url not in unique_urls:
+                unique_urls[url] = {
+                    "title": result.get("title", "Untitled"),
+                    "snippet": result.get("snippet", "")
+                }
+            if len(unique_urls) >= 12: # Limit total sources to process
+                break
+        if len(unique_urls) >= 12:
+            break
+
+    # Step 2: Parallel content extraction
+    extracted_contents = []
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [
+            executor.submit(process_url, url, info["title"], info["snippet"])
+            for url, info in unique_urls.items()
+        ]
+        for future in futures:
+            try:
+                extracted_contents.append(future.result(timeout=10))
+            except Exception as e:
+                print(f"Parallel extraction error: {e}")
+
+    # Step 3: Compare sentences with extracted contents
+    sources = []
+    source_map = {} # url -> source index
+    sentence_matches = {} # sentence -> (match_type, source_index, score)
+
+    for item in extracted_contents:
+        url = item["url"]
+        title = item["title"]
+        page_text = item["content"]
+        
+        if not page_text:
+            continue
+
+        for sentence in sentences:
+            if sentence in sentence_matches and sentence_matches[sentence][2] > 0.95:
+                continue # Skip if already found an exact match
             
-            if not url:
-                continue
+            score = calculate_similarity(sentence, page_text)
+            match_type = classify_match(score)
             
-            # Extract page content
-            page_text = extract_text(url)
-            if not page_text:
-                page_text = snippet  # Fallback to snippet
-            
-            # Check each sentence against this source
-            for sentence in sentences:
-                if sentence in sentence_matches:
-                    continue  # Already found a match for this sentence
-                
-                # Calculate similarity
-                score = calculate_similarity(sentence, page_text)
-                match_type = classify_match(score)
-                
-                if match_type:
-                    # Add source if not already added
+            if match_type:
+                # Better match or first match
+                if sentence not in sentence_matches or score > sentence_matches[sentence][2]:
                     if url not in source_map:
                         source_index = len(sources)
                         source_map[url] = source_index
