@@ -1,4 +1,6 @@
-flask
-flask-cors
+fastapi
+uvicorn
+requests
+beautifulsoup4
 scikit-learn
-gunicorn
+python-multipart
