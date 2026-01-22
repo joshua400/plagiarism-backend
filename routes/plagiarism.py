@@ -65,15 +65,18 @@ def check_plagiarism(data: TextInput):
     # Step 2: Parallel content extraction
     extracted_contents = []
     with ThreadPoolExecutor(max_workers=5) as executor:
-        futures = [
-            executor.submit(process_url, url, info["title"], info["snippet"])
+        # Create a mapping of futures to URLs for better error reporting
+        future_to_url = {
+            executor.submit(process_url, url, info["title"], info["snippet"]): url
             for url, info in unique_urls.items()
-        ]
-        for future in futures:
+        }
+        
+        for future in future_to_url:
+            url = future_to_url[future]
             try:
                 extracted_contents.append(future.result(timeout=10))
             except Exception as e:
-                print(f"Parallel extraction error: {e}")
+                print(f"Parallel extraction failed for {url}: {type(e).__name__} {e}")
 
     # Step 3: Compare sentences with extracted contents
     sources = []
