@@ -44,7 +44,7 @@ def check_plagiarism(data: TextInput):
     sentence_matches = {}  # sentence -> (match_type, source_index, score)
     
     # Search for each chunk
-    for chunk in chunks[:8]:  # Limit chunks to avoid rate limiting
+    for chunk in chunks[:12]:  # Increased from 8 to catch more sources
         results = search_web(chunk)
         
         for result in results:
