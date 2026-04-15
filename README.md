@@ -20,7 +20,7 @@ uvicorn app:app --reload
 
 - `GET /health` - Health check
 - `POST /check-plagiarism` - Check text for plagiarism
-- `POST /check-plagiarism-file` - Upload .txt file for plagiarism check
+- `POST /check-plagiarism-file` - Upload .txt file for plagiarism check (v4)
 
 ## Environment Variables
 
