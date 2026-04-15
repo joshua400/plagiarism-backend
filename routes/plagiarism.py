@@ -150,12 +150,76 @@ def check_plagiarism(data: TextInput):
     # Calculate percentages
     percentages = calculate_percentages(highlighted_text, len(sentences))
 
+    # Generate AI Insights
+    ai_insights = []
+
+    if result.plagiarismPercentage > 50:
+        ai_insights.append(
+            {
+                "type": "critical",
+                "title": "High Plagiarism Detected",
+                "description": f"Your document contains {result.plagiarismPercentage}% plagiarized content. Major revisions are recommended.",
+            }
+        )
+    elif result.plagiarismPercentage > 20:
+        ai_insights.append(
+            {
+                "type": "warning",
+                "title": "Moderate Plagiarism Found",
+                "description": f"{result.plagiarismPercentage}% of your content matches other sources. Consider adding more original content.",
+            }
+        )
+    elif result.plagiarismPercentage > 0:
+        ai_insights.append(
+            {
+                "type": "info",
+                "title": "Low Plagiarism Detected",
+                "description": f"Only {result.plagiarismPercentage}% matches found. Your document is mostly original.",
+            }
+        )
+    else:
+        ai_insights.append(
+            {
+                "type": "success",
+                "title": "No Plagiarism Found",
+                "description": "Your content appears to be original. No significant matches detected.",
+            }
+        )
+
+    if result.exactMatchPercentage > 30:
+        ai_insights.append(
+            {
+                "type": "warning",
+                "title": "High Exact Match",
+                "description": f"{result.exactMatchPercentage}% has exact matches. Try rephrasing those sections.",
+            }
+        )
+
+    if result.uniquePercentage > 80:
+        ai_insights.append(
+            {
+                "type": "success",
+                "title": "Strong Originality",
+                "description": f"{result.uniquePercentage}% unique content shows good original writing.",
+            }
+        )
+
+    if len(sources) > 0:
+        ai_insights.append(
+            {
+                "type": "info",
+                "title": "Sources Identified",
+                "description": f"Found {len(sources)} potential source(s). Review them for proper citations.",
+            }
+        )
+
     return {
         "wordCount": word_count,
         "characterCount": char_count,
         **percentages,
         "highlightedText": highlighted_text,
         "sources": sources,
+        "aiInsights": ai_insights,
     }
 
 
