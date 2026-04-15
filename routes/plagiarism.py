@@ -152,29 +152,32 @@ def check_plagiarism(data: TextInput):
 
     # Generate AI Insights
     ai_insights = []
+    plag_pct = percentages["plagiarismPercentage"]
+    exact_pct = percentages["exactMatchPercentage"]
+    unique_pct = percentages["uniquePercentage"]
 
-    if result.plagiarismPercentage > 50:
+    if plag_pct > 50:
         ai_insights.append(
             {
                 "type": "critical",
                 "title": "High Plagiarism Detected",
-                "description": f"Your document contains {result.plagiarismPercentage}% plagiarized content. Major revisions are recommended.",
+                "description": f"Your document contains {plag_pct}% plagiarized content. Major revisions are recommended.",
             }
         )
-    elif result.plagiarismPercentage > 20:
+    elif plag_pct > 20:
         ai_insights.append(
             {
                 "type": "warning",
                 "title": "Moderate Plagiarism Found",
-                "description": f"{result.plagiarismPercentage}% of your content matches other sources. Consider adding more original content.",
+                "description": f"{plag_pct}% of your content matches other sources. Consider adding more original content.",
             }
         )
-    elif result.plagiarismPercentage > 0:
+    elif plag_pct > 0:
         ai_insights.append(
             {
                 "type": "info",
                 "title": "Low Plagiarism Detected",
-                "description": f"Only {result.plagiarismPercentage}% matches found. Your document is mostly original.",
+                "description": f"Only {plag_pct}% matches found. Your document is mostly original.",
             }
         )
     else:
@@ -186,21 +189,21 @@ def check_plagiarism(data: TextInput):
             }
         )
 
-    if result.exactMatchPercentage > 30:
+    if exact_pct > 30:
         ai_insights.append(
             {
                 "type": "warning",
                 "title": "High Exact Match",
-                "description": f"{result.exactMatchPercentage}% has exact matches. Try rephrasing those sections.",
+                "description": f"{exact_pct}% has exact matches. Try rephrasing those sections.",
             }
         )
 
-    if result.uniquePercentage > 80:
+    if unique_pct > 80:
         ai_insights.append(
             {
                 "type": "success",
                 "title": "Strong Originality",
-                "description": f"{result.uniquePercentage}% unique content shows good original writing.",
+                "description": f"{unique_pct}% unique content shows good original writing.",
             }
         )
 
