@@ -150,14 +150,13 @@ def check_plagiarism(data: TextInput):
     # Calculate percentages
     percentages = calculate_percentages(highlighted_text, len(sentences))
 
-
-return {
-    "wordCount": word_count,
-    "characterCount": char_count,
-    **percentages,
-    "highlightedText": highlighted_text,
-    "sources": sources,
-}
+    return {
+        "wordCount": word_count,
+        "characterCount": char_count,
+        **percentages,
+        "highlightedText": highlighted_text,
+        "sources": sources,
+    }
 
 
 @router.post("/check-plagiarism-file")
